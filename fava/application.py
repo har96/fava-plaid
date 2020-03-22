@@ -54,6 +54,8 @@ from fava.util import slugify
 from fava.util.date import Interval
 from fava.util.excel import HAVE_EXCEL
 
+from fava.core import fplaid
+
 setup_logging()
 app = Flask(  # pylint: disable=invalid-name
     __name__,
@@ -88,6 +90,7 @@ REPORTS = [
     "query",
     "statistics",
     "trial_balance",
+    "plaid"
 ]
 
 
@@ -187,6 +190,11 @@ def url_for_source(**kwargs) -> str:
         )
     return url_for("report", report_name="editor", **kwargs)
 
+
+@app.context_processor
+def plaid_context() -> Dict[str, Any]:
+    """ Inject plaid variables into context """
+    return fplaid.get_plaid_data()
 
 @app.context_processor
 def template_context() -> Dict[str, Any]:

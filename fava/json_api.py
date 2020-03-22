@@ -20,6 +20,7 @@ from fava.core.misc import align
 from fava.serialisation import deserialise
 from fava.serialisation import serialise
 from fava.typing import g
+from fava.core import fplaid
 
 json_api = Blueprint("json_api", __name__)  # pylint: disable=invalid-name
 
@@ -182,6 +183,28 @@ def source(request_data) -> str:
         request_data.get("sha256sum"),
     )
 
+# PLAID ENDPOINT
+@json_api.route("/plaid_access_token", methods=["POST"])
+@json_response
+def access_token() -> str:
+    """Return the access token provided by plaid link"""
+    public_token = request.form['public_token']
+
+    # get client
+    client = fplaid.create_client()
+
+    # Send request
+    exchange_response = \
+        client.Item.public_token.exchange(public_token)
+    access_token = exchange_response['access_token']
+    item_id = exchange_response['item_id']
+
+    # Save token
+    fplaid.save_access_token(access_token, item_id)
+
+    print(exchange_response)
+
+    return exchange_response
 
 @put_api_endpoint
 def format_source(request_data) -> str:
