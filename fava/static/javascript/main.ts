@@ -52,6 +52,7 @@ import "./keyboard-shortcuts";
 import { notify } from "./notifications";
 import "./sidebar";
 import "./sort";
+import "./plaid";
 import "./tree-table";
 import { favaAPI, favaAPIStore, favaAPIValidator } from "./stores";
 

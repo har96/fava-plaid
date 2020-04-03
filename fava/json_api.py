@@ -206,6 +206,21 @@ def access_token() -> str:
 
     return exchange_response
 
+#PLAID ENDPOINT
+@get_api_endpoint
+def plaid_transactions() -> str:
+    """ Return a list of transactions """
+    institution = request.args.get('inst')
+    print("Started endpoint",institution)
+    token = fplaid.get_plaid_data()["institutions"][institution]
+    print("Getting transactions for "+token)
+
+    # get transactions
+    trans = fplaid.get_transactions('2016-07-12', '2020-04-03', token)
+    print(trans)
+
+    return trans
+
 @put_api_endpoint
 def format_source(request_data) -> str:
     """Format beancount file."""
