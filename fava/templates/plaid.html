@@ -51,12 +51,6 @@
                   $.post('/beancount/api/plaid_access_token', {
                                     public_token: public_token,
                                   });
-                  /*
-                          putAPI("access_token", {
-                              public_token: public_token
-                          }).then (
-                              function() { console.log("FINISHED")});
-                              */
                       },
               onExit: function(err, metadata) {
                         // The user exited the Link flow.
