@@ -1,18 +1,30 @@
 import { select, delegate, fetchAPI } from "./helpers";
 import e from "./events";
+import { formatCurrency } from "./format";
+import AddTrans from "./modals/AddTrans.svelte";
+
+let trans_field;
+let transactions: any[];
 
 function getTrans(inst: string): void {
+  // Start loading indicator
+  const svg = select(".fava-icon");
+  if (svg) {
+    svg.classList.add("loading");
+  }
+  // Fetch transactions
   fetchAPI("plaid_transactions", { inst }).then(response => {
     const table: HTMLTableElement = select(
       "table.plaid-transactions"
     ) as HTMLTableElement;
     const data: any[] = response as any[];
+    transactions = data;
 
     if (table) {
       for (const trans of data) {
         const row = table.insertRow();
         // Amount
-        row.insertCell().innerHTML = trans.amount;
+        row.insertCell().innerHTML = formatCurrency(parseFloat(trans.amount));
         // Date
         row.insertCell().innerHTML = trans.date;
         // Description
@@ -20,6 +32,10 @@ function getTrans(inst: string): void {
         // Payee
         row.insertCell().innerHTML = trans.name;
       }
+    }
+    // Stop loading indicator
+    if (svg) {
+      svg.classList.remove("loading");
     }
   });
 }
@@ -49,6 +65,18 @@ e.on("page-loaded", () => {
   delegate(trans, "click", "tr", event => {
     const target = event.target as HTMLElement;
 
-    console.log(`Clicked element with ${target.innerText}`);
+    if (target) {
+      const row = target.parentNode as HTMLTableRowElement;
+      if (row) {
+        trans_field = new AddTrans({
+          target: select("body") as Element,
+          props: {
+            transactions,
+            trans_id: row.rowIndex - 1,
+          },
+        });
+      }
+    }
+    window.location.hash = "plaid-trans";
   });
 });

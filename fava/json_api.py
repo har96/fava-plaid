@@ -217,7 +217,6 @@ def plaid_transactions() -> str:
 
     # get transactions
     trans = fplaid.get_transactions('2016-07-12', '2020-04-03', token)
-    print(trans)
 
     return trans
 

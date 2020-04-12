@@ -15,14 +15,6 @@
             <tr><th>Amount</th><th>Date</th><th>Description</th><th>Payee</th></tr>
         </thead>
         <tbody>
-    {% for t in transactions %}
-            <tr>
-                <td>{{ t["amount"] }}</td>
-                <td>{{ t["date"] }}</td>
-                <td>{{ t["category"] }}</td>
-                <td>{{ t["name"] }}</td>
-            </tr>
-    {% endfor %}
         </tbody>
     </table>
 </div>
