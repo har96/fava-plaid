@@ -211,12 +211,14 @@ def access_token() -> str:
 def plaid_transactions() -> str:
     """ Return a list of transactions """
     institution = request.args.get('inst')
-    print("Started endpoint",institution)
-    token = fplaid.get_plaid_data()["institutions"][institution]
-    print("Getting transactions for "+token)
+    plaid_data = fplaid.get_plaid_data()
+    if plaid_data.get("institutions"):
+        token = fplaid.get_plaid_data()["institutions"][institution]
 
-    # get transactions
-    trans = fplaid.get_transactions('2016-07-12', '2020-04-03', token)
+        # get transactions
+        trans = fplaid.get_transactions('2016-07-12', '2020-04-03', token)
+    else:
+        trans = []
 
     return trans
 

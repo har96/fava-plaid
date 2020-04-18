@@ -1,12 +1,14 @@
 {% set file_path = request.args.get('file_path', ledger.fava_options['default-file'] or ledger.beancount_file_path) %}
 
-<div>
+<div style="margin-bottom: 20px">
     <label for="inst">Select Institution:</label>
     <select id="institution" name="inst">
         {% for i in institutions.keys() %}
         <option value="{{ i }}">{{ i }}</option>
         {% endfor %}
     </select>
+
+    <button id="link-button">Link New Account</button>
 </div>
 
 <div>
@@ -20,7 +22,6 @@
 </div>
 
 
-<button id="link-button">Link Account</button>
 <script 
               src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
 <script 

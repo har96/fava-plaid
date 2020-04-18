@@ -1,4 +1,4 @@
-import { select, delegate, fetchAPI } from "./helpers";
+import { select, selectAll, delegate, fetchAPI } from "./helpers";
 import e from "./events";
 import { formatCurrency } from "./format";
 import AddTrans from "./modals/AddTrans.svelte";
@@ -15,7 +15,7 @@ function getTrans(inst: string): void {
   // Fetch transactions
   fetchAPI("plaid_transactions", { inst }).then(response => {
     const table: HTMLTableElement = select(
-      "table.plaid-transactions"
+      "table.plaid-transactions tbody"
     ) as HTMLTableElement;
     const data: any[] = response as any[];
     transactions = data;
@@ -58,6 +58,12 @@ e.on("page-loaded", () => {
     inst_s.addEventListener("change", () => {
       // Get transactions
       console.log(`Changed institution to ${inst_s.value}`);
+      // Clear table
+      const rows = selectAll(
+        "table.plaid-transactions tbody tr"
+      ) as HTMLElement[];
+      if (rows) {rows.forEach(r => r.remove());}
+      // Replace transactions
       getTrans(inst_s.value);
     });
   }
