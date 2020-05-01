@@ -21,6 +21,7 @@
     </table>
 </div>
 
+<div style="display: none;" id="update_item"></div>
 
 <script 
               src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
@@ -72,5 +73,29 @@
       $('#link-button').on('click', function(e) {
               handler.open();
             });
+
+    const config = {characterData:true, childList:true};
+    const update_link = function(mutationsList, observer) {
+        var token = $("#update_item").html();
+        console.log(token);
+
+        var new_handler = Plaid.create({
+            clientName: 'fava-plaid',
+            env: '{{ environment }}',
+            key: '{{ public_key }}',
+            product: ['transactions'],
+            token: token,
+            onSuccess: function( public_token, metadata) {
+                location.reload();
+            },
+            onExit: function( err, metadata) {
+                ;
+            }
+        });
+        new_handler.open();
+    };
+
+    const observer = new MutationObserver(update_link);
+    observer.observe(document.getElementById('update_item'), config);
 })(jQuery);
     </script>

@@ -4,6 +4,7 @@ This module contains the url endpoints of the JSON API that is used by the web
 interface for asynchronous functionality.
 """
 import functools
+import datetime
 import os
 import shutil
 from os import path
@@ -213,12 +214,24 @@ def plaid_transactions() -> str:
     institution = request.args.get('inst')
     plaid_data = fplaid.get_plaid_data()
     if plaid_data.get("institutions"):
-        token = fplaid.get_plaid_data()["institutions"][institution]
+        token = plaid_data["institutions"][institution]
 
+        # Get today's date
+        today = datetime.date.today().isoformat()
         # get transactions
-        trans = fplaid.get_transactions('2016-07-12', '2020-04-03', token)
+        trans = fplaid.get_transactions('2016-07-12', today, token)
     else:
         trans = []
+
+    if trans == -1:
+        # Need to update items
+        public_token = fplaid.get_update_token(token)
+        return [{"error": "update_item"}, {"error": public_token}]
+
+    # Add beancount account name to transactions
+    for t in trans:
+        t["beanaccount"] = plaid_data["accounts"].get(t["account_id"], "")
+
 
     return trans
 

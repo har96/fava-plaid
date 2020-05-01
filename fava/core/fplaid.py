@@ -45,9 +45,13 @@ def get_transactions(start_date, end_date, access_token):
     client = create_client()
     
     # get transactions
-    response = client.Transactions.get(access_token=access_token,
-                    start_date=start_date,
-                    end_date=end_date)
+    try:
+        response = client.Transactions.get(access_token=access_token,
+                        start_date=start_date,
+                        end_date=end_date)
+    except plaid.errors.ItemError:
+        # need to update item
+        return -1
 
     transactions = response["transactions"]
 
@@ -58,6 +62,16 @@ def get_transactions(start_date, end_date, access_token):
         transactions.extend(response["transactions"])
 
     return transactions
+
+
+def get_update_token(access_token):
+    """ Return the public token needed to update
+    an item """
+    client = create_client()
+
+    response = client.Item.public_token.create(access_token)
+
+    return response['public_token']
 
 
 def get_institutions():

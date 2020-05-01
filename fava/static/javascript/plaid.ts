@@ -20,22 +20,34 @@ function getTrans(inst: string): void {
     const data: any[] = response as any[];
     transactions = data;
 
-    if (table) {
-      for (const trans of data) {
-        const row = table.insertRow();
-        // Amount
-        row.insertCell().innerHTML = formatCurrency(parseFloat(trans.amount));
-        // Date
-        row.insertCell().innerHTML = trans.date;
-        // Description
-        row.insertCell().innerHTML = trans.transaction_type;
-        // Payee
-        row.insertCell().innerHTML = trans.name;
+    if (transactions.length) {
+      if (transactions[0].error === "update_item") {
+        // Need to update link
+        const update_field = select("#update_item") as HTMLElement;
+
+        update_field.innerHTML = transactions[1].error;
+        console.log("Need to update account!!!");
+      } else {
+        if (table) {
+          for (const trans of data) {
+            const row = table.insertRow();
+            // Amount
+            row.insertCell().innerHTML = formatCurrency(
+              parseFloat(trans.amount)
+            );
+            // Date
+            row.insertCell().innerHTML = trans.date;
+            // Description
+            row.insertCell().innerHTML = trans.transaction_type;
+            // Payee
+            row.insertCell().innerHTML = trans.name;
+          }
+        }
+        // Stop loading indicator
+        if (svg) {
+          svg.classList.remove("loading");
+        }
       }
-    }
-    // Stop loading indicator
-    if (svg) {
-      svg.classList.remove("loading");
     }
   });
 }
@@ -62,7 +74,9 @@ e.on("page-loaded", () => {
       const rows = selectAll(
         "table.plaid-transactions tbody tr"
       ) as HTMLElement[];
-      if (rows) {rows.forEach(r => r.remove());}
+      if (rows) {
+        rows.forEach(r => r.remove());
+      }
       // Replace transactions
       getTrans(inst_s.value);
     });

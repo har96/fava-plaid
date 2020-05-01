@@ -38,7 +38,8 @@
     if (trans) {
       entry.payee = trans.name;
       entry.date = trans.date;
-      entry.postings[0].amount = `${trans.amount.toString()  } USD`;
+      entry.postings[0].amount = `${trans.amount.toString()} USD`;
+      entry.postings[1].account = trans.beanaccount;
     }
   }
 
