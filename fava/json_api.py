@@ -219,7 +219,7 @@ def plaid_transactions() -> str:
         # Get today's date
         today = datetime.date.today().isoformat()
         # get transactions
-        trans = fplaid.get_transactions('2016-07-12', today, token)
+        trans = fplaid.get_transactions('2020-05-12', today, token)
     else:
         trans = []
 

@@ -63,6 +63,15 @@ def get_transactions(start_date, end_date, access_token):
 
     return transactions
 
+def get_latest_transaction(ledger, transactions):
+    """ Use a list of transactions and ledger object to
+    match up the latest transaction recorded """
+    unrecorded_trans = []
+    # Get account from transactions
+    # Set indices for both lists
+    # For each transaction
+        # If it doesn't exist
+
 
 def get_update_token(access_token):
     """ Return the public token needed to update
