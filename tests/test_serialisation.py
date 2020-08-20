@@ -12,18 +12,18 @@ from beancount.core.data import Posting
 from beancount.core.data import Transaction
 from beancount.core.number import D
 from beancount.core.number import MISSING
-from flask.json import dumps
 from flask.json import loads
 
 from fava.core.file import _format_entry
-from fava.core.helpers import FavaAPIException
+from fava.core.charts import dumps
+from fava.helpers import FavaAPIException
 from fava.serialisation import deserialise
 from fava.serialisation import deserialise_posting
 from fava.serialisation import extract_tags_links
 from fava.serialisation import serialise
 
 
-def test_serialise(app) -> None:
+def test_serialise() -> None:
     assert serialise(None) is None
     txn = Transaction(
         {},
@@ -51,18 +51,17 @@ def test_serialise(app) -> None:
         ],
     }
 
-    with app.test_request_context():
-        serialised = loads(dumps(serialise(txn)))
-        assert serialised == json_txn
+    serialised = loads(dumps(serialise(txn)))
+    assert serialised == json_txn
 
-        txn = txn._replace(payee="")
-        json_txn["payee"] = ""
-        serialised = loads(dumps(serialise(txn)))
-        assert serialised == json_txn
+    txn = txn._replace(payee="")
+    json_txn["payee"] = ""
+    serialised = loads(dumps(serialise(txn)))
+    assert serialised == json_txn
 
-        txn = txn._replace(payee=None)
-        serialised = loads(dumps(serialise(txn)))
-        assert serialised == json_txn
+    txn = txn._replace(payee=None)
+    serialised = loads(dumps(serialise(txn)))
+    assert serialised == json_txn
 
 
 @pytest.mark.parametrize(
@@ -144,10 +143,10 @@ def test_deserialise_posting_and_format(snapshot) -> None:
             deserialise_posting({"account": "Assets", "amount": "10 EUR @"}),
         ],
     )
-    snapshot(_format_entry(txn, 61))
+    snapshot(_format_entry(txn, 61, 2))
 
 
-def test_serialise_balance(app) -> None:
+def test_serialise_balance() -> None:
     bal = Balance(
         {},
         datetime.date(2019, 9, 17),
@@ -167,8 +166,7 @@ def test_serialise_balance(app) -> None:
         "type": "Balance",
     }
 
-    with app.test_request_context():
-        serialised = loads(dumps(serialise(bal)))
+    serialised = loads(dumps(serialise(bal)))
 
     assert serialised == json
 

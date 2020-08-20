@@ -1,0 +1,36 @@
+import { writable, derived } from "svelte/store";
+
+import { _ } from "../i18n";
+import iso4217currencies from "../lib/iso4217";
+import { currencies_sorted, operating_currency } from ".";
+import { NamedChartTypes } from "../charts";
+
+export const showCharts = writable(true);
+export const activeChart = writable<NamedChartTypes | undefined>(undefined);
+export const chartMode = writable("treemap");
+export const lineChartMode = writable("line");
+export const chartCurrency = writable("");
+
+const currencySuggestions = derived(
+  [operating_currency, currencies_sorted],
+  ([operating_currency_val, currencies_sorted_val]) => [
+    ...operating_currency_val,
+    ...currencies_sorted_val.filter(
+      (c) => !operating_currency_val.includes(c) && iso4217currencies.has(c)
+    ),
+  ]
+);
+
+export const conversions = derived(
+  currencySuggestions,
+  (currencySuggestions_val) => [
+    ["at_cost", _("At Cost")],
+    ["at_value", _("At Market Value")],
+    ["units", _("Units")],
+    ...currencySuggestions_val.map((currency) => [
+      currency,
+      `Converted to ${currency}`,
+    ]),
+  ]
+);
+// TODO  _('Converted to %(currency)s', currency=currency)

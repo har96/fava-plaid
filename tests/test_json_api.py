@@ -8,11 +8,12 @@ from typing import Optional
 import flask
 import pytest
 
+from fava.core.charts import dumps
 from fava.core.misc import align
 
 
 def assert_api_error(response, msg: Optional[str] = None) -> None:
-    """Asserts that the reponse errored and contains the message."""
+    """Asserts that the response errored and contains the message."""
     assert response.status_code == 200
     assert not response.json["success"]
     if msg:
@@ -28,7 +29,7 @@ def assert_api_success(response, data: Optional[Any] = None) -> None:
 
 
 def test_api_changed(app, test_client) -> None:
-    with app.test_request_context():
+    with app.test_request_context("/long-example/"):
         app.preprocess_request()
         url = flask.url_for("json_api.changed")
 
@@ -37,7 +38,7 @@ def test_api_changed(app, test_client) -> None:
 
 
 def test_api_add_document(app, test_client, tmp_path) -> None:
-    with app.test_request_context():
+    with app.test_request_context("/long-example/"):
         app.preprocess_request()
         old_documents = flask.g.ledger.options["documents"]
         flask.g.ledger.options["documents"] = [str(tmp_path)]
@@ -56,41 +57,59 @@ def test_api_add_document(app, test_client, tmp_path) -> None:
         )
 
         response = test_client.put(url, data=request_data)
-        assert_api_success(response, "Uploaded to {}".format(filename))
+        assert_api_success(response, f"Uploaded to {filename}")
         assert Path(filename).is_file()
 
         request_data["file"] = (BytesIO(b"asdfasdf"), "2015-12-12 test")
         response = test_client.put(url, data=request_data)
-        assert_api_error(response, "{} already exists.".format(filename))
+        assert_api_error(response, f"{filename} already exists.")
         flask.g.ledger.options["documents"] = old_documents
 
 
+def test_api_errors(app, test_client) -> None:
+    with app.test_request_context("/long-example/"):
+        app.preprocess_request()
+        url = flask.url_for("json_api.errors")
+
+    response = test_client.get(url)
+    assert_api_success(response, 0)
+
+
+def test_api_payee_accounts(app, test_client) -> None:
+    with app.test_request_context("/long-example/"):
+        app.preprocess_request()
+        url = flask.url_for("json_api.payee_accounts", payee="test")
+
+    response = test_client.get(url)
+    assert_api_success(response, [])
+
+
 def test_api_move(app, test_client) -> None:
-    with app.test_request_context():
+    with app.test_request_context("/long-example/"):
         app.preprocess_request()
         url = flask.url_for("json_api.move")
 
-        response = test_client.get(url)
-        assert_api_error(response)
+    response = test_client.get(url)
+    assert_api_error(response)
 
 
 def test_api_source_put(app, test_client) -> None:
-    with app.test_request_context():
+    with app.test_request_context("/long-example/"):
         app.preprocess_request()
         url = flask.url_for("json_api.source")
+        path = flask.g.ledger.beancount_file_path
 
     # test bad request
     response = test_client.put(url)
     assert_api_error(response, "Invalid JSON request.")
 
-    path = app.config["BEANCOUNT_FILES"][0]
     payload = open(path, encoding="utf-8").read()
     sha256sum = hashlib.sha256(open(path, mode="rb").read()).hexdigest()
 
     # change source
     response = test_client.put(
         url,
-        data=flask.json.dumps(
+        data=dumps(
             {
                 "source": "asdf" + payload,
                 "sha256sum": sha256sum,
@@ -108,7 +127,7 @@ def test_api_source_put(app, test_client) -> None:
     # write original source file
     result = test_client.put(
         url,
-        data=flask.json.dumps(
+        data=dumps(
             {"source": payload, "sha256sum": sha256sum, "file_path": path}
         ),
         content_type="application/json",
@@ -118,33 +137,32 @@ def test_api_source_put(app, test_client) -> None:
 
 
 def test_api_format_source(app, test_client) -> None:
-    with app.test_request_context():
+    with app.test_request_context("/long-example/"):
         app.preprocess_request()
         url = flask.url_for("json_api.format_source")
+        path = flask.g.ledger.beancount_file_path
 
-    path = app.config["BEANCOUNT_FILES"][0]
     payload = open(path, encoding="utf-8").read()
 
     response = test_client.put(
-        url,
-        data=flask.json.dumps({"source": payload}),
-        content_type="application/json",
+        url, data=dumps({"source": payload}), content_type="application/json",
     )
     assert_api_success(response, align(payload, 61))
 
 
 def test_api_format_source_options(app, test_client) -> None:
-    path = app.config["BEANCOUNT_FILES"][0]
-    payload = open(path, encoding="utf-8").read()
-    with app.test_request_context():
+    with app.test_request_context("/long-example/"):
         app.preprocess_request()
+        path = flask.g.ledger.beancount_file_path
+        payload = open(path, encoding="utf-8").read()
+
         url = flask.url_for("json_api.format_source")
         old_currency_column = flask.g.ledger.fava_options["currency-column"]
         flask.g.ledger.fava_options["currency-column"] = 90
 
         response = test_client.put(
             url,
-            data=flask.json.dumps({"source": payload}),
+            data=dumps({"source": payload}),
             content_type="application/json",
         )
         assert_api_success(response, align(payload, 90))
@@ -153,7 +171,7 @@ def test_api_format_source_options(app, test_client) -> None:
 
 
 def test_api_add_entries(app, test_client, tmp_path):
-    with app.test_request_context():
+    with app.test_request_context("/long-example/"):
         app.preprocess_request()
         old_beancount_file = flask.g.ledger.beancount_file_path
         test_file = tmp_path / "test_file"
@@ -212,7 +230,7 @@ def test_api_add_entries(app, test_client, tmp_path):
         url = flask.url_for("json_api.add_entries")
 
         response = test_client.put(
-            url, data=flask.json.dumps(data), content_type="application/json"
+            url, data=dumps(data), content_type="application/json"
         )
         assert_api_success(response, "Stored 3 entries.")
 
@@ -245,7 +263,7 @@ def test_api_add_entries(app, test_client, tmp_path):
     ],
 )
 def test_api_query_result(query_string, result_str, app, test_client) -> None:
-    with app.test_request_context():
+    with app.test_request_context("/long-example/"):
         app.preprocess_request()
         url = flask.url_for("json_api.query_result", query_string=query_string)
 

@@ -1,6 +1,7 @@
 # pylint: disable=missing-docstring
 
 import os
+from copy import deepcopy
 from typing import Counter, Any, Callable
 from pathlib import Path
 from pprint import pformat
@@ -13,13 +14,6 @@ from fava.application import _load_file, app as fava_app
 from fava.core.budgets import parse_budgets
 
 
-def create_app(bfile: str):
-    key = "BEANCOUNT_FILES"
-    if (key not in fava_app.config) or (fava_app.config[key] != [bfile]):
-        fava_app.config[key] = [bfile]
-        _load_file()
-
-
 def data_file(filename: str) -> str:
     return str(Path(__file__).parent / "data" / filename)
 
@@ -27,11 +21,18 @@ def data_file(filename: str) -> str:
 EXAMPLE_FILE = data_file("long-example.beancount")
 EXTENSION_REPORT_EXAMPLE_FILE = data_file("extension-report-example.beancount")
 
-API = FavaLedger(EXAMPLE_FILE)
+EXAMPLE_LEDGER = FavaLedger(EXAMPLE_FILE)
+EXAMPLE_LEDGER_OPTIONS = deepcopy(EXAMPLE_LEDGER.options)
+EXAMPLE_LEDGER_FAVA_OPTIONS = deepcopy(EXAMPLE_LEDGER.fava_options)
 
 fava_app.testing = True
 TEST_CLIENT = fava_app.test_client()
-create_app(EXAMPLE_FILE)
+
+fava_app.config["BEANCOUNT_FILES"] = [
+    EXAMPLE_FILE,
+    EXTENSION_REPORT_EXAMPLE_FILE,
+]
+_load_file()
 
 
 SNAPSHOT_UPDATE = bool(os.environ.get("SNAPSHOT_UPDATE"))
@@ -72,14 +73,7 @@ def snapshot(request) -> Callable[[Any], None]:
 
 
 @pytest.fixture
-def extension_report_app():
-    create_app(EXTENSION_REPORT_EXAMPLE_FILE)
-    return fava_app
-
-
-@pytest.fixture
 def app():
-    create_app(EXAMPLE_FILE)
     return fava_app
 
 
@@ -94,19 +88,16 @@ def load_doc(request):
 
 
 @pytest.fixture
-def extension_report_ledger():
-    return FavaLedger(EXTENSION_REPORT_EXAMPLE_FILE)
-
-
-@pytest.fixture
 def small_example_ledger():
     return FavaLedger(data_file("example.beancount"))
 
 
 @pytest.fixture
 def example_ledger():
-    yield API
-    API.filter(account=None, filter=None, time=None)
+    yield EXAMPLE_LEDGER
+    EXAMPLE_LEDGER.options = deepcopy(EXAMPLE_LEDGER_OPTIONS)
+    EXAMPLE_LEDGER.fava_options = deepcopy(EXAMPLE_LEDGER_FAVA_OPTIONS)
+    EXAMPLE_LEDGER.filter(account=None, filter=None, time=None)
 
 
 @pytest.fixture
