@@ -6,8 +6,6 @@ from codecs import decode
 from codecs import encode
 from hashlib import sha256
 from operator import attrgetter
-from typing import Any
-from typing import Dict
 from typing import Generator
 from typing import List
 from typing import Optional
@@ -26,20 +24,19 @@ from fava.core.filters import get_entry_accounts
 from fava.core.misc import align
 from fava.core.module_base import FavaModule
 from fava.helpers import FavaAPIException
+from fava.util import next_key
 
 
-#: The flags to exclude when rendering entries entries.
-EXCL_FLAGS = set(
-    (
-        flags.FLAG_PADDING,  # P
-        flags.FLAG_SUMMARIZE,  # S
-        flags.FLAG_TRANSFER,  # T
-        flags.FLAG_CONVERSIONS,  # C
-        flags.FLAG_UNREALIZED,  # U
-        flags.FLAG_RETURNS,  # R
-        flags.FLAG_MERGING,  # M
-    )
-)
+#: The flags to exclude when rendering entries.
+EXCL_FLAGS = {
+    flags.FLAG_PADDING,  # P
+    flags.FLAG_SUMMARIZE,  # S
+    flags.FLAG_TRANSFER,  # T
+    flags.FLAG_CONVERSIONS,  # C
+    flags.FLAG_UNREALIZED,  # U
+    flags.FLAG_RETURNS,  # R
+    flags.FLAG_MERGING,  # M
+}
 
 
 def sha256_str(val: str) -> str:
@@ -215,26 +212,12 @@ def incomplete_sortkey(entry: Directive) -> Tuple[datetime.date, int]:
     return (entry.date, SORT_ORDER.get(type(entry), 0))
 
 
-def next_key(basekey: str, keys: Dict[str, Any]) -> str:
-    """Returns the next unused key for basekey in the supplied array.
-
-    The first try is `basekey`, followed by `basekey-2`, `basekey-3`, etc
-    until a free one is found.
-    """
-    if basekey not in keys:
-        return basekey
-    i = 2
-    while f"{basekey}-{i}" in keys:
-        i = i + 1
-    return f"{basekey}-{i}"
-
-
 def insert_metadata_in_file(
     filename: str, lineno: int, indent: int, key: str, value: str
 ) -> None:
     """Inserts the specified metadata in the file below lineno, taking into
     account the whitespace in front of the line that lineno."""
-    with open(filename, "r", encoding="utf-8") as file:
+    with open(filename, encoding="utf-8") as file:
         contents = file.readlines()
 
     contents.insert(lineno, f'{" " * indent}{key}: "{value}"\n')
@@ -299,7 +282,7 @@ def save_entry_slice(
             source files.
     """
 
-    with open(entry.meta["filename"], "r", encoding="utf-8") as file:
+    with open(entry.meta["filename"], encoding="utf-8") as file:
         lines = file.readlines()
 
     first_entry_line = entry.meta["lineno"] - 1
@@ -343,7 +326,7 @@ def insert_entry(
     )
     content = _format_entry(entry, currency_column, indent)
 
-    with open(filename, "r", encoding="utf-8") as file:
+    with open(filename, encoding="utf-8") as file:
         contents = file.readlines()
 
     if lineno is None:
@@ -375,7 +358,7 @@ def _format_entry(entry: Directive, currency_column: int, indent: int) -> str:
     entry = entry._replace(meta=meta)
     string = align(format_entry(entry, prefix=" " * indent), currency_column)
     string = string.replace("<class 'beancount.core.number.MISSING'>", "")
-    return "\n".join((line.rstrip() for line in string.split("\n")))
+    return "\n".join(line.rstrip() for line in string.split("\n"))
 
 
 def find_insert_position(

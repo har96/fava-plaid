@@ -21,6 +21,22 @@ export interface Validator<T> {
 /**
  * Validate as unknown (noop).
  */
+export function defaultValue<T>(
+  validator: Validator<T>,
+  value: T
+): Validator<T> {
+  return (json: unknown): T => {
+    try {
+      return validator(json);
+    } catch (err) {
+      return value;
+    }
+  };
+}
+
+/**
+ * Validate as unknown (noop).
+ */
 export function unknown(json: unknown): unknown {
   return json;
 }
@@ -34,6 +50,9 @@ export function string(json: unknown): string {
   }
   throw new ValidationError(`Expected a string, got '${json}' instead.`);
 }
+
+/** Validate a string and return the empty string on failure. */
+export const optional_string = defaultValue(string, "");
 
 /**
  * Validate a boolean.
@@ -83,22 +102,23 @@ export function constant<T extends null | boolean | string | number>(
   };
 }
 
+type TupleElement<T extends unknown[]> = T extends (infer E)[] ? E : T;
+
 /**
  * Validate a value that is of one of two given types.
  */
-export function union<A, B>(
-  a: Validator<A>,
-  b: Validator<B>
-): Validator<A | B> {
-  return (json: unknown): A | B => {
-    for (const validator of [a, b]) {
+export function union<T extends unknown[]>(
+  ...args: { [P in keyof T]: Validator<T[P]> }
+): Validator<TupleElement<T>> {
+  return (json: unknown): TupleElement<T> => {
+    for (const validator of args) {
       try {
-        return validator(json);
+        return validator(json) as TupleElement<T>;
       } catch (exc) {
         // pass
       }
     }
-    throw new ValidationError(`Validating union failed`);
+    throw new ValidationError("Validating union failed");
   };
 }
 
@@ -106,18 +126,15 @@ export function union<A, B>(
  * Validator for an object that might be undefined.
  */
 export function optional<T>(validator: Validator<T>): Validator<T | undefined> {
-  return (json: unknown): T | undefined => {
-    return json === undefined ? undefined : validator(json);
-  };
+  return (json: unknown): T | undefined =>
+    json === undefined ? undefined : validator(json);
 }
 
 /**
  * Lazy validator to allow for recursive structures.
  */
 export function lazy<T>(func: () => Validator<T>): Validator<T> {
-  return (json: unknown): T => {
-    return func()(json);
-  };
+  return (json: unknown): T => func()(json);
 }
 
 /**
@@ -155,8 +172,12 @@ export function tuple<A, B>(
   };
 }
 
-const isJsonObject = (json: unknown): json is Record<string, unknown> =>
-  typeof json === "object" && json !== null && !Array.isArray(json);
+/**
+ * Check whether the given object is a string-indexable object.
+ */
+export function isJsonObject(json: unknown): json is Record<string, unknown> {
+  return typeof json === "object" && json !== null && !Array.isArray(json);
+}
 
 /**
  * Validator for an object with some given properties.
@@ -175,7 +196,7 @@ export function object<T>(
       }
       return obj as T;
     }
-    throw new ValidationError();
+    throw new ValidationError("Validating object failed");
   };
 }
 

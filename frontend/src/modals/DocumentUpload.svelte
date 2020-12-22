@@ -47,9 +47,7 @@
   <form bind:this={form} on:submit|preventDefault={submit}>
     <h3>{_('Upload file(s)')}:</h3>
     {#each $files as file}
-      <div class="fieldset">
-        <input bind:value={file.name} />
-      </div>
+      <div class="fieldset"><input bind:value={file.name} /></div>
     {/each}
     <div class="fieldset">
       <label>
@@ -64,6 +62,7 @@
     <div class="fieldset">
       <label>
         {_('Account')}:
+
         <AccountInput bind:value={$account} />
       </label>
       <input type="hidden" name="hash" value={$hash} />

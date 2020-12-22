@@ -23,19 +23,14 @@ mostlyclean:
 	find . -type f -name '*.py[c0]' -delete
 	find . -type d -name "__pycache__" -delete
 
-.PHONY: check-lint
-check-lint: frontend/node_modules
-	cd frontend; npm run check-lint
-	tox -e lint
-
 .PHONY: lint
 lint: frontend/node_modules
-	cd frontend; npm run lint
-	tox -e format
+	pre-commit run -a
 	tox -e lint
 
 .PHONY: test
 test:
+	cd frontend; npm run build
 	cd frontend; npm run test
 	tox -e py
 
@@ -102,7 +97,11 @@ gh-pages:
 	rm -r build
 	touch .nojekyll
 	git add -A
-	git commit -m 'Update gh-pages'
+	git commit -m 'Update gh-pages' --no-verify
 	git push --force git@github.com:beancount/fava.git gh-pages:gh-pages
 	git checkout master
 	git branch -D gh-pages
+
+# Create a binary using pyinstaller
+dist/fava: src/fava/static/app.js
+	tox -e pyinstaller

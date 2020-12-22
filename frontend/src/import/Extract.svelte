@@ -1,53 +1,33 @@
 <script>
-  import { get, saveEntries } from "../api";
+  import { createEventDispatcher } from "svelte";
   import { _ } from "../i18n";
-  import { urlHash, closeOverlay } from "../stores";
 
   import ModalBase from "../modals/ModalBase.svelte";
   import Entry from "../entry-forms/Entry.svelte";
+  import { isDuplicate } from "./helpers";
 
   /** @type {import('../entries').Entry[]} */
-  let entries = [];
-  /** @type {number} */
+  export let entries;
+
   let currentIndex = 0;
-  /** @type {boolean} */
-  let duplicate;
-  /** @type {number} */
-  let duplicates;
 
-  /** @type {import('../entries').Entry} */
-  let entry;
-  /** @type {boolean} */
-  let shown;
-
-  /**
-   * @param {import("../entries").Entry} e
-   */
-  function isDuplicate(e) {
-    return !!e.meta.__duplicate__;
-  }
-
-  $: shown = $urlHash.startsWith("extract");
-  $: if (shown) {
-    const params = new URLSearchParams($urlHash.slice(8));
-    const filename = params.get("filename") || "";
-    const importer = params.get("importer") || "";
-    get("extract", { filename, importer }).then((data) => {
-      entries = data;
-    });
-  }
+  $: shown = entries.length > 0;
   $: entry = entries[currentIndex];
-  $: if (entry) {
-    duplicates = entry && entries.filter((e) => isDuplicate(e)).length;
-    duplicate = isDuplicate(entry);
+  $: duplicate /** @type {boolean} */ = entry && isDuplicate(entry);
+  $: duplicates = entries.filter((e) => isDuplicate(e)).length;
+  $: if (entries.length > 0 && currentIndex >= entries.length) {
+    currentIndex = 0;
   }
+
+  const dispatch = createEventDispatcher();
+
+  const closeHandler = () => dispatch("close");
 
   async function submitOrNext() {
     if (currentIndex < entries.length - 1) {
       currentIndex += 1;
     } else {
-      await saveEntries(entries.filter((e) => !isDuplicate(e)));
-      closeOverlay();
+      dispatch("save");
     }
   }
 
@@ -71,13 +51,17 @@
   }
 </style>
 
-<ModalBase {shown}>
+<ModalBase {shown} {closeHandler}>
   <form novalidate={duplicate} on:submit|preventDefault={submitOrNext}>
     <h3>{_('Import')}</h3>
     {#if entry}
       <div class="flex-row">
         <h3>
-          Entry {currentIndex + 1} of {entries.length} ({entries.length - duplicates}
+          Entry
+          {currentIndex + 1}
+          of
+          {entries.length}
+          ({entries.length - duplicates}
           to import):
         </h3>
         <span class="spacer" />
@@ -117,9 +101,7 @@
             }}>
             ⏭
           </button>
-        {:else}
-          <button type="submit">{_('Save')}</button>
-        {/if}
+        {:else}<button type="submit">{_('Save')}</button>{/if}
       </div>
       <hr />
       {#if entry.meta.__source__}

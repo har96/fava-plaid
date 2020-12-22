@@ -1,12 +1,13 @@
 import { todayAsString } from "./format";
 import {
   array,
-  object,
-  string,
   constant,
+  object,
+  optional_string,
   record,
-  unknown,
+  string,
   union,
+  unknown,
   Validator,
 } from "./lib/validation";
 
@@ -124,8 +125,8 @@ export class Transaction extends EntryBase {
     ...validatorBase,
     type: constant("Transaction"),
     flag: string,
-    payee: string,
-    narration: string,
+    payee: optional_string,
+    narration: optional_string,
     postings: array(postingValidator),
   });
 
@@ -137,7 +138,8 @@ export class Transaction extends EntryBase {
 export type Entry = Balance | Note | Transaction;
 
 export const entryValidator: Validator<Entry> = union(
-  union(Balance.validator, Note.validator),
+  Balance.validator,
+  Note.validator,
   Transaction.validator
 );
 

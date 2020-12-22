@@ -3,6 +3,7 @@
 
   import { get } from "../api";
   import { query_shell_history, addToHistory } from "../stores/query";
+  import { getFilterParams } from "../stores/filters";
   import { parseQueryChart } from "../charts";
 
   import Chart from "../charts/Chart.svelte";
@@ -19,9 +20,10 @@
   const query_results = {};
 
   $: query_result_array = $query_shell_history.map(
-    /** @returns {[string, ResultType]} */ (item) => {
-      return [item, query_results[item] || {}];
-    }
+    /** @returns {[string, ResultType]} */ (item) => [
+      item,
+      query_results[item] || {},
+    ]
   );
 
   /**
@@ -40,7 +42,10 @@
 
   function submit() {
     const query = query_string;
-    get("query_result", { query_string: query }).then(
+    if (!query) {
+      return;
+    }
+    get("query_result", { query_string: query, ...getFilterParams() }).then(
       (res) => {
         const chart = parseQueryChart(res.chart);
         setResult(query, { result: { chart, table: res.table } });

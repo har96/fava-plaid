@@ -68,7 +68,7 @@
   $: areaShape = area()
     .x((d) => x(d.date))
     .y1((d) => y(d.value))
-    .y0(innerHeight);
+    .y0(Math.min(innerHeight, y(0)));
 
   // Axes
   $: xAxis = axisBottom(x).tickSizeOuter(0);
@@ -129,7 +129,7 @@
         {#each data as d}
           <g fill={$currenciesScale(d.name)}>
             {#each d.values as v}
-              <circle r="3" cx={x(v.date)} cy={y(v.value)} />
+              <circle r="2" cx={x(v.date)} cy={y(v.value)} />
             {/each}
           </g>
         {/each}

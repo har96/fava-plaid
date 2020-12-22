@@ -1,21 +1,27 @@
 <script>
   import { moveDocument } from "../api";
-  import { baseURL } from "../stores/url";
   import { _ } from "../i18n";
   import router from "../router";
 
   import { basename } from "../lib/paths";
-  import { entriesToTree } from "./util";
+  import { stratify } from "../lib/tree";
 
   import AccountInput from "../entry-forms/AccountInput.svelte";
   import ModalBase from "../modals/ModalBase.svelte";
   import Accounts from "./Accounts.svelte";
   import Table from "./Table.svelte";
+  import DocumentPreview from "./DocumentPreview.svelte";
 
   /** @typedef {{account: string, filename: string, date: string}} Document */
 
   /** @type {Document[]} */
   export let data;
+
+  $: node = stratify(
+    new Set(data.map((e) => e.account)),
+    (s) => s,
+    (name) => ({ name })
+  );
 
   /** @type {Document} */
   let selected;
@@ -63,20 +69,17 @@
 </script>
 
 <style>
-  .container {
-    position: fixed;
-    top: var(--header-height);
-    right: 0;
-    bottom: 0;
-    left: var(--aside-width);
-    display: flex;
+  .fixed-fullsize-container {
+    display: grid;
+    grid-template-columns: 1fr 2fr 3fr;
   }
-  .half-column {
-    width: 33%;
+  .fixed-fullsize-container > :global(*) {
     height: 100%;
     overflow: auto;
     resize: horizontal;
-    border-right: thin solid var(--color-sidebar-border);
+  }
+  .fixed-fullsize-container > :global(* + *) {
+    border-left: thin solid var(--color-sidebar-border);
   }
 </style>
 
@@ -89,9 +92,7 @@
     }}>
     <div>
       <h3>{_('Move or rename document')}</h3>
-      <p>
-        <code>{moving.filename}</code>
-      </p>
+      <p><code>{moving.filename}</code></p>
       <p>
         <AccountInput bind:value={moving.account} />
         <input size={40} bind:value={moving.newName} />
@@ -100,19 +101,12 @@
     </div>
   </ModalBase>
 {/if}
-<div class="container">
-  <div class="half-column" style="width: 14rem;">
-    <Accounts node={entriesToTree(data)} on:drop={drop} />
-  </div>
-  <div class="half-column">
+<div class="fixed-fullsize-container">
+  <Accounts {node} on:drop={drop} />
+  <div>
     <Table bind:selected {data} />
   </div>
-  <div style="flex: 1;">
-    {#if selected}
-      <object
-        title={selected.filename}
-        data={`${$baseURL}document/?filename=${selected.filename}`}
-        style="width:100%;height:100%" />
-    {/if}
-  </div>
+  {#if selected}
+    <DocumentPreview filename={selected.filename} />
+  {/if}
 </div>

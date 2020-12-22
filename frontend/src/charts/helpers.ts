@@ -1,27 +1,34 @@
 import { hcl } from "d3-color";
 import { scaleOrdinal } from "d3-scale";
-import { get, derived } from "svelte/store";
+import { derived, get } from "svelte/store";
 
-import { accounts, operating_currency, currencies_sorted } from "../stores";
-import { time_filter } from "../stores/filters";
 import { currentTimeFilterDateFormat } from "../format";
+import { accounts, currencies_sorted, operating_currency } from "../stores";
+import { time_filter } from "../stores/filters";
 
+/**
+ * Set the time filter to the given value (formatted according to the current interval).
+ * @param date - a date.
+ */
 export function setTimeFilter(date: Date): void {
   time_filter.set(get(currentTimeFilterDateFormat)(date));
 }
 
-/*
+/**
  * Generate an array of colors.
  *
  * Uses the HCL color space in an attempt to generate colours that are
  * to be perceived to be of the same brightness.
+ * @param count - the number of colors to generate.
+ * @param chroma - optional, the chroma channel value.
+ * @param luminance - optional, the luminance channel value.
  */
-function hclColorRange(count: number, chroma = 45, lightness = 70): string[] {
+function hclColorRange(count: number, chroma = 45, luminance = 70): string[] {
   const offset = 270;
   const delta = 360 / count;
   const colors = [...Array(count).keys()].map((index) => {
     const hue = (index * delta + offset) % 360;
-    return hcl(hue, chroma, lightness);
+    return hcl(hue, chroma, luminance);
   });
   return colors.map((c) => c.toString());
 }
