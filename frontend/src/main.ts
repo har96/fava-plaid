@@ -30,8 +30,6 @@ import "codemirror/addon/hint/show-hint.css";
 
 import "./plaid";
 
-import { _ } from "./i18n";
-import router, { initSyncedStoreValues } from "./router";
 import { get } from "./api";
 import { CopyableText } from "./clipboard";
 import { BeancountTextarea } from "./editor";
