@@ -88,6 +88,8 @@
         event.preventDefault();
         select(filteredSuggestions[index].suggestion);
       }
+    } else if (event.key === " " && event.ctrlKey) {
+      hidden = false;
     } else if (event.key === "Escape") {
       hidden = true;
     } else if (event.key === "ArrowUp") {
@@ -99,6 +101,55 @@
     }
   }
 </script>
+
+<span class={className}>
+  <input
+    {name}
+    type="text"
+    autocomplete="off"
+    bind:value
+    bind:this={input}
+    use:keyboardShortcut={key}
+    on:blur={() => {
+      hidden = true;
+      dispatch("blur");
+    }}
+    on:focus={() => {
+      hidden = false;
+    }}
+    on:input={() => {
+      hidden = false;
+    }}
+    on:keydown={keydown}
+    {placeholder}
+    {size}
+  />
+  {#if clearButton && value}
+    <button
+      type="button"
+      tabindex={-1}
+      class="muted round"
+      on:click={() => {
+        value = "";
+        dispatch("select");
+      }}
+    >
+      ×
+    </button>
+  {/if}
+  {#if filteredSuggestions.length}
+    <ul {hidden}>
+      {#each filteredSuggestions as { innerHTML, suggestion }, i}
+        <li
+          class:selected={i === index}
+          on:mousedown={(ev) => mousedown(ev, suggestion)}
+        >
+          {@html innerHTML}
+        </li>
+      {/each}
+    </ul>
+  {/if}
+</span>
 
 <style>
   span {
@@ -148,49 +199,3 @@
     border-radius: 2px;
   }
 </style>
-
-<span class={className}>
-  <input
-    {name}
-    type="text"
-    autocomplete="off"
-    bind:value
-    bind:this={input}
-    use:keyboardShortcut={key}
-    on:blur={() => {
-      hidden = true;
-      dispatch('blur');
-    }}
-    on:focus={() => {
-      hidden = false;
-    }}
-    on:input={() => {
-      hidden = false;
-    }}
-    on:keydown={keydown}
-    {placeholder}
-    {size} />
-  {#if clearButton && value}
-    <button
-      type="button"
-      tabindex={-1}
-      class="muted round"
-      on:click={() => {
-        value = '';
-        dispatch('select');
-      }}>
-      ×
-    </button>
-  {/if}
-  {#if filteredSuggestions.length}
-    <ul {hidden}>
-      {#each filteredSuggestions as { innerHTML, suggestion }, i}
-        <li
-          class:selected={i === index}
-          on:mousedown={(ev) => mousedown(ev, suggestion)}>
-          {@html innerHTML}
-        </li>
-      {/each}
-    </ul>
-  {/if}
-</span>

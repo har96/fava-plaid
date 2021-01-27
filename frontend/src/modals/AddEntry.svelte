@@ -38,20 +38,21 @@
   $: shown = $urlHash === "add-transaction";
 </script>
 
-<ModalBase {shown}>
+<ModalBase {shown} focus=".payee input">
   <form on:submit|preventDefault={submit}>
     <h3>
-      {_('Add')}
+      {_("Add")}
       {#each entryTypes as [type, displayName]}
         <button
           type="button"
           class:muted={entry.type !== type}
           on:click={() => {
             entry = create(type);
-          }}>
+          }}
+        >
           {displayName}
         </button>
-        {' '}
+        {" "}
       {/each}
     </h3>
     <Entry bind:entry />
@@ -60,10 +61,11 @@
       <button
         type="submit"
         on:click|preventDefault={submitAndNew}
-        class="muted">
-        {_('Save and add new')}
+        class="muted"
+      >
+        {_("Save and add new")}
       </button>
-      <button type="submit">{_('Save')}</button>
+      <button type="submit">{_("Save")}</button>
     </div>
   </form>
 </ModalBase>

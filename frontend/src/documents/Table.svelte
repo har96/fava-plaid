@@ -58,6 +58,39 @@
   }
 </script>
 
+<table>
+  <thead>
+    <tr>
+      {#each tableColumns as col, index}
+        <th
+          on:click={() => setSort(index)}
+          data-sort
+          data-order={index === sort[0] ? sort[1] : null}
+        >
+          {col.header}
+        </th>
+      {/each}
+    </tr>
+  </thead>
+  <tbody>
+    {#each table as { doc, row }}
+      <tr
+        class:selected={selected === doc}
+        draggable={true}
+        title={doc.filename}
+        on:dragstart={(ev) =>
+          ev.dataTransfer?.setData("fava/filename", doc.filename)}
+        on:click={() => {
+          selected = doc;
+        }}
+      >
+        <td>{row[0]}</td>
+        <td>{row[1]}</td>
+      </tr>
+    {/each}
+  </tbody>
+</table>
+
 <style>
   table {
     width: 100%;
@@ -70,33 +103,3 @@
     background-color: var(--color-table-header-background);
   }
 </style>
-
-<table>
-  <thead>
-    <tr>
-      {#each tableColumns as col, index}
-        <th
-          on:click={() => setSort(index)}
-          data-sort
-          data-order={index === sort[0] ? sort[1] : null}>
-          {col.header}
-        </th>
-      {/each}
-    </tr>
-  </thead>
-  <tbody>
-    {#each table as { doc, row }}
-      <tr
-        class:selected={selected === doc}
-        draggable={true}
-        title={doc.filename}
-        on:dragstart={(ev) => ev.dataTransfer?.setData('fava/filename', doc.filename)}
-        on:click={() => {
-          selected = doc;
-        }}>
-        <td>{row[0]}</td>
-        <td>{row[1]}</td>
-      </tr>
-    {/each}
-  </tbody>
-</table>

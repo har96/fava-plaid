@@ -88,34 +88,24 @@
   }
 </script>
 
-<style>
-  svg > g {
-    pointer-events: all;
-  }
-  .lines path {
-    fill: none;
-    stroke-width: 2px;
-  }
-  .area path {
-    opacity: 0.3;
-  }
-</style>
-
 <svg {width} {height}>
   <g
     use:positionedTooltip={tooltipInfo}
-    transform={`translate(${margin.left},${margin.top})`}>
+    transform={`translate(${margin.left},${margin.top})`}
+  >
     <g
       class="x axis"
       use:axis={xAxis}
-      transform={`translate(0,${innerHeight})`} />
+      transform={`translate(0,${innerHeight})`}
+    />
     <g class="y axis" use:axis={yAxis} />
-    {#if $lineChartMode === 'area'}
+    {#if $lineChartMode === "area"}
       <g class="area">
         {#each data as d}
           <path
             d={areaShape(d.values, innerHeight)}
-            fill={$currenciesScale(d.name)} />
+            fill={$currenciesScale(d.name)}
+          />
         {/each}
       </g>
     {/if}
@@ -124,7 +114,7 @@
         <path d={lineShape(d.values)} stroke={$currenciesScale(d.name)} />
       {/each}
     </g>
-    {#if $lineChartMode !== 'area'}
+    {#if $lineChartMode !== "area"}
       <g>
         {#each data as d}
           <g fill={$currenciesScale(d.name)}>
@@ -137,3 +127,16 @@
     {/if}
   </g>
 </svg>
+
+<style>
+  svg > g {
+    pointer-events: all;
+  }
+  .lines path {
+    fill: none;
+    stroke-width: 2px;
+  }
+  .area path {
+    opacity: 0.3;
+  }
+</style>

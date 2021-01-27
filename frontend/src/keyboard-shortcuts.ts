@@ -1,6 +1,3 @@
-import { once } from "./lib/events";
-import { closeOverlay } from "./stores";
-
 /**
  * Add a tooltip showing the keyboard shortcut over the target element.
  * @param target - The target element to show the tooltip on.
@@ -181,9 +178,12 @@ export function initCurrentKeyboardShortcuts(): void {
 export function initGlobalKeyboardShortcuts(): void {
   bindKey("?", () => {
     const hide = showTooltips();
-    once(document, "mousedown", hide);
-    once(document, "keydown", hide);
+    const once = () => {
+      hide();
+      document.removeEventListener("mousedown", once);
+      document.removeEventListener("keydown", once);
+    };
+    document.addEventListener("mousedown", once);
+    document.addEventListener("keydown", once);
   });
-
-  bindKey("Escape", closeOverlay);
 }

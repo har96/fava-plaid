@@ -29,6 +29,8 @@ import "codemirror/addon/fold/foldgutter.css";
 import "codemirror/addon/hint/show-hint.css";
 
 import "./plaid";
+// Polyfill for customised builtin elements in Webkit
+import "@ungap/custom-elements";
 
 import { get } from "./api";
 import { CopyableText } from "./clipboard";

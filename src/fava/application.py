@@ -281,7 +281,11 @@ def index():
     """Redirect to the Income Statement (of the given or first file)."""
     if not g.beancount_file_slug:
         g.beancount_file_slug = next(iter(app.config["LEDGERS"]))
-    return redirect(url_for("report", report_name="income_statement"))
+    index_url = url_for("index")
+    default_path = app.config["LEDGERS"][g.beancount_file_slug].fava_options[
+        "default-page"
+    ]
+    return redirect(f"{index_url}{default_path}")
 
 
 @app.route("/<bfile>/account/<name>/")
@@ -375,9 +379,9 @@ def download_journal():
     return send_file(data, as_attachment=True, attachment_filename=filename)
 
 
-@app.route("/<bfile>/help/")
-@app.route("/<bfile>/help/<string:page_slug>/")
-def help_page(page_slug="_index"):
+@app.route("/<bfile>/help/", defaults={"page_slug": "_index"})
+@app.route("/<bfile>/help/<string:page_slug>")
+def help_page(page_slug):
     """Fava's included documentation."""
     if page_slug not in HELP_PAGES:
         abort(404)

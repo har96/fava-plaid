@@ -51,28 +51,14 @@
     .outerRadius((d) => y(d.y1));
 </script>
 
-<style>
-  .half {
-    opacity: 0.5;
-  }
-  .account {
-    fill: var(--color-text);
-  }
-  .balance {
-    font-family: var(--font-family-monospaced);
-  }
-  path {
-    cursor: pointer;
-  }
-</style>
-
 <g
   {width}
   {height}
   transform={`translate(${width / 2},${height / 2})`}
   on:mouseleave={() => {
     current = null;
-  }}>
+  }}
+>
   <circle style="opacity:0" r={radius} />
   <text class="account" text-anchor="middle">
     {currentAccount || root.data.account}
@@ -87,6 +73,22 @@
       class:half={current && !currentAccount.startsWith(d.data.account)}
       fill-rule="evenodd"
       fill={$sunburstScale(d.data.account)}
-      d={arcShape(d)} />
+      d={arcShape(d)}
+    />
   {/each}
 </g>
+
+<style>
+  .half {
+    opacity: 0.5;
+  }
+  .account {
+    fill: var(--color-text);
+  }
+  .balance {
+    font-family: var(--font-family-monospaced);
+  }
+  path {
+    cursor: pointer;
+  }
+</style>

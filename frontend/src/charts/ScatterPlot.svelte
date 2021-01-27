@@ -67,20 +67,16 @@
   }
 </script>
 
-<style>
-  svg > g {
-    pointer-events: all;
-  }
-</style>
-
 <svg {width} {height}>
   <g
     use:positionedTooltip={tooltipInfo}
-    transform={`translate(${margin.left},${margin.top})`}>
+    transform={`translate(${margin.left},${margin.top})`}
+  >
     <g
       class="x axis"
       use:axis={xAxis}
-      transform={`translate(0,${innerHeight})`} />
+      transform={`translate(0,${innerHeight})`}
+    />
     <g class="y axis" use:axis={yAxis} />
     <g>
       {#each data as dot}
@@ -88,8 +84,15 @@
           r="5"
           fill={scatterplotScale(dot.type)}
           cx={x(dot.date)}
-          cy={y(dot.type)} />
+          cy={y(dot.type)}
+        />
       {/each}
     </g>
   </g>
 </svg>
+
+<style>
+  svg > g {
+    pointer-events: all;
+  }
+</style>
